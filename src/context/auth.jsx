@@ -1,20 +1,27 @@
 import React, { createContext, useState, useEffect } from 'react';
 
+// Create the context
 const AuthContext = createContext();
 
+const storedAuth = localStorage.getItem('isAuthenticated') === 'true' || false;
+    const storedUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+// Auth Provider
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  // Initialize state without conflict
+  const [isAuthenticated, setIsAuthenticated] = useState(storedAuth);
+  const [currentUser, setCurrentUser] = useState(storedUser);
 
+  // Load from localStorage on first mount
   useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated') === 'true';
-    const storedUser = JSON.parse(localStorage.getItem('currentUser'));
-    setIsAuthenticated(authStatus);
-    if (storedUser) {
+    
+
+    if (storedAuth && storedUser) {
+      setIsAuthenticated(true);
       setCurrentUser(storedUser);
     }
   }, []);
 
+  // Login or Register user
   const login = (formData) => {
     const { username, password } = formData;
     const users = JSON.parse(localStorage.getItem('users')) || [];
@@ -43,6 +50,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Logout user
   const logout = () => {
     setIsAuthenticated(false);
     setCurrentUser(null);

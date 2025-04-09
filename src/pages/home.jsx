@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router';
 import Header from './header';
 import ExpenseContext from '../context/add';
 import { MdDeleteOutline } from 'react-icons/md';
-import { FaEdit } from 'react-icons/fa';
+import { FaChartLine, FaEdit } from 'react-icons/fa';
 import SalaryContext from '../context/salary';
 import { toWords } from 'number-to-words';
 import { HiSortDescending } from 'react-icons/hi';
@@ -206,9 +206,10 @@ export default function Home() {
           <div className='text-center'>Total salary: Rs.{calculateTotal(salaries)}</div>
         </aside>
       </article>
+      <Link to="/chart" ><FaChartLine className='w-10 h-10 ml-5 mt-5  text-white hover:text-blue-600' />
+      </Link>
 
-      <p 
-  className={`text-2xl text-center mt-5 ${calculateTotal(salaries) - calculateTotal(expenses) < 0 ? 'text-red-900 animate-bounce ' : 'text-white'}`}
+      <p className={`text-2xl text-center mt-5 ${calculateTotal(salaries) - calculateTotal(expenses) < 0 ? 'text-red-900 animate-bounce ' : 'text-white'}`}
 >
   Saving Amount: Rs. {calculateTotal(salaries) - calculateTotal(expenses)}
 </p>
