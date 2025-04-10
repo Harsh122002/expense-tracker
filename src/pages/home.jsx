@@ -4,16 +4,17 @@ import { Link, useNavigate } from 'react-router';
 import Header from './header';
 import ExpenseContext from '../context/add';
 import { MdDeleteOutline } from 'react-icons/md';
-import { FaChartLine, FaEdit } from 'react-icons/fa';
+import { FaChartLine, FaEdit, FaFileExport } from 'react-icons/fa';
 import SalaryContext from '../context/salary';
 import { toWords } from 'number-to-words';
 import { HiSortDescending } from 'react-icons/hi';
+import xlsx from "json-as-xlsx"
 
 export default function Home() {
   const { isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
   const { expenses, deleteExpense, searchData } = useContext(ExpenseContext);
-  const { salaries, deleteSalary,searchDataSal } = useContext(SalaryContext);
+  const { salaries, deleteSalary, searchDataSal } = useContext(SalaryContext);
   const [title, setTitle] = useState("");
   const [search, setSearch] = useState([]);
   const [searchSa, setSearchSa] = useState([]);
@@ -21,6 +22,42 @@ export default function Home() {
   const [value, setValue] = useState(false);
   const [valueSa, setValueSa] = useState(false);
   const [titleSal, setTitleSal] = useState("");
+  console.log(expenses);
+
+  let data = [
+    {
+      sheet: "Expense",
+      columns: [
+        { label: "Title", value: "title" },
+        { label: "Amount", value: "amount" },
+        { label: "Description", value: "description" },
+        { label: "Date", value: "date" },
+      ],
+      content: expenses.map((item) => ({
+        title: item.title,
+        amount: item.amount,
+        description: item.description,
+        date: new Date(item.id).toLocaleString(),
+      })),
+    },
+    {
+      sheet: "salary",
+      columns: [
+        { label: "Title", value: "title" },
+        { label: "Amount", value: "amount" },
+        { label: "Date", value: "date" },
+      ],
+      content: salaries.map((item) => ({
+        title: item.title,
+        amount: item.amount,
+        date: new Date(item.id).toLocaleString(),
+      })),
+
+
+    },
+  ];
+
+
   useEffect(() => {
     if (!isAuthenticated) navigate('/login');
     setSearch([]);
@@ -56,16 +93,16 @@ export default function Home() {
     setTitleSal("");
   }
   const handleDesc = () => {
-      const data = search.length > 0 ? [...search] : [...expenses];
-      data.sort((a, b) => {
-        if (sortOrder === 'asc') {
-          return a.description.localeCompare(b.description);
-        } else {
-          return b.description.localeCompare(a.description);
-        }
-      });
-      setSearch(data);
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    const data = search.length > 0 ? [...search] : [...expenses];
+    data.sort((a, b) => {
+      if (sortOrder === 'asc') {
+        return a.description.localeCompare(b.description);
+      } else {
+        return b.description.localeCompare(a.description);
+      }
+    });
+    setSearch(data);
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
   };
   const handleDescSa = () => {
     const data = searchSa.length > 0 ? [...searchSa] : [...salaries];
@@ -79,28 +116,40 @@ export default function Home() {
     setSearchSa(data);
     setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
   };
-  
+
   const handleInput = (e) => {
     const inputValue = e.target.value;
     setTitle(inputValue);
-    
-    const data = searchData(inputValue); 
+
+    const data = searchData(inputValue);
     setSearch(data);
-  
-    console.log(inputValue); 
+
+    console.log(inputValue);
   };
   const handleInputSa = (e) => {
     const inputValue = e.target.value;
     setTitleSal(inputValue);
-    
-    const data = searchDataSal(inputValue); 
+
+    const data = searchDataSal(inputValue);
     setSearchSa(data);
-  
-    console.log(inputValue); 
+
+    console.log(inputValue);
   };
-  
+
 
   const calculateTotal = (data) => data.reduce((acc, val) => acc + parseInt(val.amount), 0);
+
+  const handleExport = () => {
+    let setting = {
+      filename: "ExpenseData",
+      extraLength: 4,
+      writeMode: "download",
+      writeOptions: {},
+      RTL: false,
+    };
+    xlsx(data, setting);
+  };
+
 
   return (
     <div className="min-h-screen w-full bg-[#2148C0]">
@@ -121,7 +170,7 @@ export default function Home() {
               className='bg-white p-1 rounded-md text-black'
               name='title'
               value={title}
-              onChange={(e)=>handleInput(e)}
+              onChange={(e) => handleInput(e)}
             />&nbsp;
             {value ? <button className='p-1 rounded-md text-green-600 bg-amber-800 cursor-pointer hover:scale-110' onClick={handleAddTitleCancel}>Cancel
             </button> : <button className='p-1 rounded-md text-green-600 bg-amber-800 cursor-pointer hover:scale-110' onClick={handleAddTitle}>Search
@@ -135,7 +184,7 @@ export default function Home() {
                 <th className="border border-gray-500 p-2">Title</th>
                 <th className="border border-gray-500 p-2">Amount (Rs.)</th>
                 <th className="border border-gray-500 p-2">Description
-                <HiSortDescending className={`cursor-pointer ${sortOrder === 'asc' ? 'rotate-180' : ''}`} onClick={handleDesc} />
+                  <HiSortDescending className={`cursor-pointer ${sortOrder === 'asc' ? 'rotate-180' : ''}`} onClick={handleDesc} />
 
                 </th>
                 <th className="border border-gray-500 p-2">Date&Time</th>
@@ -170,7 +219,7 @@ export default function Home() {
               className='bg-white p-1 rounded-md text-black'
               name='title'
               value={titleSal}
-              onChange={(e)=>handleInputSa(e)}
+              onChange={(e) => handleInputSa(e)}
             />&nbsp;
             {valueSa ? <button className='p-1 rounded-md text-green-600 bg-amber-800 cursor-pointer hover:scale-110' onClick={handleAddTitleCancelSa}>Cancel
             </button> : <button className='p-1 rounded-md text-green-600 bg-amber-800 cursor-pointer hover:scale-110' onClick={handleAddTitleSa}>Search
@@ -181,7 +230,7 @@ export default function Home() {
             <thead>
               <tr className="bg-gray-700">
                 <th className="border border-gray-500 p-2">Title
-                <HiSortDescending className={`cursor-pointer ${sortOrder === 'asc' ? 'rotate-180' : ''}`} onClick={handleDescSa} />
+                  <HiSortDescending className={`cursor-pointer ${sortOrder === 'asc' ? 'rotate-180' : ''}`} onClick={handleDescSa} />
 
                 </th>
                 <th className="border border-gray-500 p-2">Amount (Rs.)</th>
@@ -206,18 +255,26 @@ export default function Home() {
           <div className='text-center'>Total salary: Rs.{calculateTotal(salaries)}</div>
         </aside>
       </article>
-      <Link to="/chart" ><FaChartLine className='w-10 h-10 ml-5 mt-5  text-white hover:text-blue-600' />
-      </Link>
+
+      <div className='flex flex-row justify-center gap-3 mt-5'>
+        <Link to="/chart" title="View Chart">
+          <FaChartLine className='w-10 h-10 ml-5 mt-5 text-white hover:text-blue-600' />
+        </Link>
+
+        <button title="Export File" onClick={() => handleExport()}>
+          <FaFileExport className='w-10 h-10 ml-5 mt-5 text-white hover:text-blue-600' />
+        </button>
+      </div>
 
       <p className={`text-2xl text-center mt-5 ${calculateTotal(salaries) - calculateTotal(expenses) < 0 ? 'text-red-900 animate-bounce ' : 'text-white'}`}
->
-  Saving Amount: Rs. {calculateTotal(salaries) - calculateTotal(expenses)}
-</p>
-<p 
-  className={`text-2xl text-center mt-5 capitalize ${calculateTotal(salaries) - calculateTotal(expenses) < 0 ? 'text-red-900 animate-bounce' : 'text-white'}`}
->
-  Word: {toWords(calculateTotal(salaries) - calculateTotal(expenses))}
-</p>
+      >
+        Saving Amount: Rs. {calculateTotal(salaries) - calculateTotal(expenses)}
+      </p>
+      <p
+        className={`text-2xl text-center mt-5 capitalize ${calculateTotal(salaries) - calculateTotal(expenses) < 0 ? 'text-red-900 animate-bounce' : 'text-white'}`}
+      >
+        Word: {toWords(calculateTotal(salaries) - calculateTotal(expenses))}
+      </p>
 
     </div>
   );
